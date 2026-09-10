@@ -1,40 +1,19 @@
-name: Build DEX
-
-on:
-  push:
-    branches: [ main ]
-
+name: BuildDex
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install build-tools
-        run: sdkmanager "platforms;android-33" "build-tools;33.0.0"
-
-      - name: Compile Java
-        run: |
-          javac -source 1.8 -target 1.8 \
-            -cp $ANDROID_HOME/platforms/android-33/android.jar \
-            -d . com/example/Monitor.java
-
-      - name: Convert to DEX
-        run: |
-          $ANDROID_HOME/build-tools/33.0.0/d8 --output . com/example/*.class
-          mv classes.dex monitor.dex
-
-      - name: Upload DEX
-        uses: actions/upload-artifact@v4
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-33" "build-tools;33.0.0"
+      - run: javac -source 1.8 -target 1.8 -cp $ANDROID_HOME/platforms/android-33/android.jar -d . com/example/Monitor.java
+      - run: $ANDROID_HOME/build-tools/33.0.0/d8 --output . com/example/*.class && mv classes.dex monitor.dex
+      - uses: actions/upload-artifact@v4
         with:
           name: monitor-dex
           path: monitor.dex
